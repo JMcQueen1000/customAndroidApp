@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">PokemonTCGDeckBuilder</string>
+    <string name="list_of_released_sets">List of Released Sets</string>
+    <string name="search">search</string>
 </resources>
