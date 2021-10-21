@@ -1,11 +1,11 @@
 package com.example.pokemontcgdeckbuilder
 
+import android.annotation.SuppressLint
+import android.content.ClipData
+import android.graphics.Color
 import android.icu.number.NumberFormatter.with
 import android.icu.number.NumberRangeFormatter.with
-import android.view.ContentInfo
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.TextView
@@ -36,10 +36,24 @@ class SetAdaptor(private val data: List<CardSet>,
         private val setName: TextView = v.findViewById(R.id.setName)
         private val setLogo: ImageView = v.findViewById(R.id.setLogo)
 
+        @SuppressLint("ClickableViewAccessibility")
         fun bind(item: CardSet) {
             //bind item to view
             setName.text = item.name
             Picasso.get().load(item.logoUrl).into(setLogo);
+
+            /*setLogo.setOnTouchListener { v, event ->
+                when (event?.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        (v as? ImageView)?.setColorFilter(Color.BLACK,android.graphics.PorterDuff.Mode.OVERLAY)
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        (v as? ImageView)?.clearColorFilter()
+                    }
+                }
+
+                v?.onTouchEvent(event) ?: true
+            }*/
 
             //set listener
             v.setOnClickListener { listener(item) }

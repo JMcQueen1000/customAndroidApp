@@ -24,8 +24,6 @@ class ViewCards : AppCompatActivity() {
     private lateinit var gridLayoutManager: GridLayoutManager
     private lateinit var setAdapter: SetAdaptor
     private lateinit var cardAdapter: CardAdaptor
-    //private val COUNTRY_NAME = "countryName"
-    //private val COUNTRY_CODE = "countryCode"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -208,7 +206,7 @@ class ViewCards : AppCompatActivity() {
         view.findViewById<TextView>(R.id.numberOfCardInSet).text = series
         val releaseDate = "Rarity: " + item.rarity
         view.findViewById<TextView>(R.id.cardRarity).text = releaseDate
-        Picasso.get().load(item.imageUrl).into(view.findViewById<ImageView>(R.id.cardSmallImage))
+        Picasso.get().load(item.imageUrlHiRes).into(view.findViewById<ImageView>(R.id.cardSmallImage))
 
         //bind view to sheet
         bottomSheet.setContentView(view)

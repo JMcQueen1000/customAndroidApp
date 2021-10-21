@@ -1,19 +1,13 @@
 package com.example.pokemontcgdeckbuilder
 
-import android.icu.number.NumberFormatter.with
-import android.icu.number.NumberRangeFormatter.with
-import android.view.ContentInfo
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.RatingBar
-import android.widget.TextView
-import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import io.pokemontcg.model.Card
-import io.pokemontcg.model.CardSet
 
 class CardAdaptor(private val data: List<Card>,
                  private val listener: (Card) -> Unit) : RecyclerView.Adapter<CardAdaptor.ViewHolder>()  {

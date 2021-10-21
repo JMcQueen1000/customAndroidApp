@@ -1,13 +1,19 @@
 package com.example.pokemontcgdeckbuilder
 
+import android.annotation.SuppressLint
+import android.content.ClipData
 import android.content.Intent
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
+import androidx.recyclerview.widget.RecyclerView
 
 
 class MainActivity : AppCompatActivity() {
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -32,6 +38,47 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, ViewCards::class.java)
             startActivity(intent)
         }
+
+
+        createDeckButton.setOnTouchListener {  v, event ->
+            when(event?.action){
+                MotionEvent.ACTION_DOWN -> {
+                    (v as? ImageView)?.setColorFilter(Color.BLACK,android.graphics.PorterDuff.Mode.OVERLAY)
+                }
+                MotionEvent.ACTION_UP -> {
+                    (v as? ImageView)?.clearColorFilter()
+                }
+            }
+
+            v?.onTouchEvent(event) ?: true
+        }
+
+        viewDeckButton.setOnTouchListener {  v, event ->
+            when(event?.action){
+                MotionEvent.ACTION_DOWN -> {
+                    (v as? ImageView)?.setColorFilter(Color.BLACK,android.graphics.PorterDuff.Mode.OVERLAY)
+                }
+                MotionEvent.ACTION_UP -> {
+                    (v as? ImageView)?.clearColorFilter()
+                }
+            }
+
+            v?.onTouchEvent(event) ?: true
+        }
+
+        viewCardsButton.setOnTouchListener {  v, event ->
+            when(event?.action){
+                MotionEvent.ACTION_DOWN -> {
+                    (v as? ImageView)?.setColorFilter(Color.BLACK,android.graphics.PorterDuff.Mode.OVERLAY)
+                }
+                MotionEvent.ACTION_UP -> {
+                    (v as? ImageView)?.clearColorFilter()
+                }
+            }
+
+            v?.onTouchEvent(event) ?: true
+        }
+
 
     }
 }

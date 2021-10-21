@@ -21,6 +21,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ViewCards" />
+        <activity android:name=".ViewDecks" />
+        <activity android:name=".CreateDeck" />
     </application>
 
 </manifest>
