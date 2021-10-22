@@ -1,17 +1,14 @@
 package com.example.pokemontcgdeckbuilder
 
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipDescription
+import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.DragEvent
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.view.*
+import android.widget.*
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,6 +28,7 @@ class CreateDeck : AppCompatActivity() {
     private lateinit var currentCards: List<Card>
     private lateinit var deckCards: MutableList<DeckCard>
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.create_deck_layout)
@@ -40,6 +38,7 @@ class CreateDeck : AppCompatActivity() {
 
         //set up deckList recycler view
         val deckList = findViewById<RecyclerView>(R.id.deckRecyclerView)
+        deckList.elevation = 20f
 
         gridLayoutManager = GridLayoutManager(this, 5)
         deckList.layoutManager = gridLayoutManager
@@ -51,12 +50,23 @@ class CreateDeck : AppCompatActivity() {
 
         //set up cardList recycler view
         val cardList = findViewById<RecyclerView>(R.id.cardRecyclerView)
+        cardList.elevation = 20f
 
         linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         cardList.layoutManager = linearLayoutManager
 
         cardAdaptor = CardDeckAdaptor(currentCards)
         cardList.adapter = cardAdaptor
+
+        val saveButton = findViewById<Button>(R.id.saveDeckButton)
+
+        saveButton.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+
+            saveToDatabase()
+
+            startActivity(intent)
+        }
 
 
         deckList.setOnDragListener {v, event ->
@@ -65,9 +75,9 @@ class CreateDeck : AppCompatActivity() {
                     // Determines if this View can accept the dragged data
                     if (event.clipDescription.label.toString() == "inList") {
                         // As an example of what your application might do,
-                        // applies a blue color tint to the View to indicate that it can accept
+                        // applies a new background to the View to indicate that it can accept
                         // data.
-                        (v as? RecyclerView)?.setBackgroundColor(Color.BLUE)
+                        (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_enable,theme)
 
                         // Invalidate the view to force a redraw in the new tint
                         v.invalidate()
@@ -81,8 +91,8 @@ class CreateDeck : AppCompatActivity() {
                     }
                 }
                 DragEvent.ACTION_DRAG_ENTERED -> {
-                    // Applies a green tint to the View. Return true; the return value is ignored.
-                    (v as? RecyclerView)?.setBackgroundColor(Color.GREEN)
+                    // Applies new background to the View. Return true; the return value is ignored.
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_hover,theme)
 
                     // Invalidate the view to force a redraw in the new tint
                     v.invalidate()
@@ -91,7 +101,7 @@ class CreateDeck : AppCompatActivity() {
 
                 DragEvent.ACTION_DRAG_EXITED -> {
                     // Applies a green tint to the View. Return true; the return value is ignored.
-                    (v as? RecyclerView)?.setBackgroundColor(Color.BLUE)
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_enable,theme)
 
                     // Invalidate the view to force a redraw in the new tint
                     v.invalidate()
@@ -109,7 +119,7 @@ class CreateDeck : AppCompatActivity() {
                     Toast.makeText(this, "Dragged data is $dragData", Toast.LENGTH_SHORT).show()
 
                     // Turns off any color tints
-                    (v as? RecyclerView)?.setBackgroundColor(Color.BLACK)
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners,theme)
 
                     // Invalidates the view to force a redraw
                     v.invalidate()
@@ -121,8 +131,8 @@ class CreateDeck : AppCompatActivity() {
                 }
 
                 DragEvent.ACTION_DRAG_ENDED -> {
-                    // Applies a green tint to the View. Return true; the return value is ignored.
-                    (v as? RecyclerView)?.setBackgroundColor(Color.BLACK)
+                    //returns background color to normal
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners,theme)
 
                     // Invalidate the view to force a redraw in the new tint
                     v.invalidate()
@@ -141,9 +151,9 @@ class CreateDeck : AppCompatActivity() {
                     // Determines if this View can accept the dragged data
                     if (event.clipDescription.label.toString() == "inDeck") {
                         // As an example of what your application might do,
-                        // applies a blue color tint to the View to indicate that it can accept
+                        // applies a new background to the View to indicate that it can accept
                         // data.
-                        (v as? RecyclerView)?.setBackgroundColor(Color.BLUE)
+                        (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_enable,theme)
 
                         // Invalidate the view to force a redraw in the new tint
                         v.invalidate()
@@ -158,7 +168,7 @@ class CreateDeck : AppCompatActivity() {
                 }
                 DragEvent.ACTION_DRAG_ENTERED -> {
                     // Applies a green tint to the View. Return true; the return value is ignored.
-                    (v as? RecyclerView)?.setBackgroundColor(Color.GREEN)
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_hover,theme)
 
                     // Invalidate the view to force a redraw in the new tint
                     v.invalidate()
@@ -167,7 +177,7 @@ class CreateDeck : AppCompatActivity() {
 
                 DragEvent.ACTION_DRAG_EXITED -> {
                     // Applies a green tint to the View. Return true; the return value is ignored.
-                    (v as? RecyclerView)?.setBackgroundColor(Color.BLUE)
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_enable,theme)
 
                     // Invalidate the view to force a redraw in the new tint
                     v.invalidate()
@@ -185,7 +195,7 @@ class CreateDeck : AppCompatActivity() {
                     Toast.makeText(this, "Dragged data is $dragData", Toast.LENGTH_SHORT).show()
 
                     // Turns off any color tints
-                    (v as? RecyclerView)?.setBackgroundColor(Color.BLACK)
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners,theme)
 
                     // Invalidates the view to force a redraw
                     v.invalidate()
@@ -197,8 +207,8 @@ class CreateDeck : AppCompatActivity() {
                 }
 
                 DragEvent.ACTION_DRAG_ENDED -> {
-                    // Applies a green tint to the View. Return true; the return value is ignored.
-                    (v as? RecyclerView)?.setBackgroundColor(Color.BLACK)
+                    //returns background color to normal
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners,theme)
 
                     // Invalidate the view to force a redraw in the new tint
                     v.invalidate()
@@ -208,23 +218,10 @@ class CreateDeck : AppCompatActivity() {
                 else -> true
             }
         }
+    }
 
-
-        val searchView = findViewById<androidx.appcompat.widget.SearchView>(R.id.searchCards)
-        searchView.queryHint = "Search Pokemon Cards"
-
-        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
-
-            override fun onQueryTextChange(newText: String): Boolean {
-                return false
-            }
-
-            override fun onQueryTextSubmit(query: String): Boolean {
-                loadSearchedCard(query)
-                return false
-            }
-
-        })
+    private fun saveToDatabase() {
+        TODO("Not yet implemented")
     }
 
     private fun showCardDetail(item: DeckCard) {
@@ -357,5 +354,28 @@ class CreateDeck : AppCompatActivity() {
                 cardList.adapter = cardAdaptor
             }
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+
+        val searchItem = menu.findItem(R.id.app_bar_search)
+        val searchView = searchItem.actionView as SearchView
+        searchView.setQueryHint("Search Pokemon Cards")
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                return false
+            }
+
+            override fun onQueryTextSubmit(query: String): Boolean {
+                loadSearchedCard(query)
+                return false
+            }
+
+        })
+
+        return true
     }
 }

@@ -32,6 +32,7 @@ class CardAdaptor(private val data: List<Card>,
 
         fun bind(item: Card) {
             Picasso.get().load(item.imageUrl).into(cardImage);
+            cardImage.elevation = 20f
 
             v.setOnClickListener { listener(item) }
         }

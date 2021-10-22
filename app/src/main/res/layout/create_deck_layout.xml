@@ -3,58 +3,81 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/red_background2">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/deckRecyclerView"
-        android:layout_width="412dp"
-        android:layout_height="349dp"
+        android:layout_width="396dp"
+        android:layout_height="294dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/background_corners"
+        app:layout_constraintBottom_toTopOf="@+id/cardRecyclerView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/createDeckText" />
+        app:layout_constraintTop_toBottomOf="@id/saveDeckButton" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/cardRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="270dp"
-        app:layout_constraintBottom_toTopOf="@id/saveDeckButton"
+        android:layout_height="280dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/background_corners"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/searchCards"
+        app:layout_constraintTop_toBottomOf="@id/deckRecyclerView"
         app:layout_constraintVertical_bias="1.0" />
 
     <TextView
         android:id="@+id/createDeckText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="@string/deck_creator"
+        android:fontFamily=""
+        android:textColor="@color/white"
         android:textSize="25sp"
-        app:layout_constraintBottom_toTopOf="@+id/deckRecyclerView"
+        app:layout_constraintBottom_toTopOf="@+id/saveDeckButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <EditText
+        android:id="@+id/editDeckText"
+        android:layout_width="239dp"
+        android:layout_height="48dp"
+        android:autofillHints="Enter Deck Name"
+        android:textAlignment="textStart"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:inputType="text"
+        app:layout_constraintBottom_toTopOf="@+id/deckRecyclerView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.058"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/createDeckText"
+        app:layout_constraintVertical_bias="0.0"
+        tools:ignore="SpeakableTextPresentCheck,SpeakableTextPresentCheck" />
+
     <Button
         android:id="@+id/saveDeckButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/save"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="142dp"
+        android:layout_height="48dp"
+        android:text="@string/save_deck"
+        android:background="@drawable/background_corners"
+        app:layout_constraintBottom_toTopOf="@id/deckRecyclerView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.942"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardRecyclerView"
+        app:layout_constraintTop_toBottomOf="@id/createDeckText"
         app:layout_constraintVertical_bias="0.958" />
 
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/searchCards"
-        android:layout_width="409dp"
-        android:layout_height="32dp"
-        android:layout_marginTop="1dp"
-        android:iconifiedByDefault="false"
-        app:layout_constraintBottom_toTopOf="@+id/cardRecyclerView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/deckRecyclerView" />
 </androidx.constraintlayout.widget.ConstraintLayout>

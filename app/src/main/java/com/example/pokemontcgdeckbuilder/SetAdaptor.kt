@@ -41,7 +41,7 @@ class SetAdaptor(private val data: List<CardSet>,
             //bind item to view
             setName.text = item.name
             Picasso.get().load(item.logoUrl).into(setLogo);
-
+            setLogo.elevation = 20f
             /*setLogo.setOnTouchListener { v, event ->
                 when (event?.action) {
                     MotionEvent.ACTION_DOWN -> {
@@ -57,6 +57,7 @@ class SetAdaptor(private val data: List<CardSet>,
 
             //set listener
             v.setOnClickListener { listener(item) }
+
         }
     }
 
