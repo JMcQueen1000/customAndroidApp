@@ -1,7 +1,9 @@
 package com.example.pokemontcgdeckbuilder
 
-import android.content.ClipData
+import android.annotation.SuppressLint
+import android.graphics.Color
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -11,8 +13,9 @@ import com.squareup.picasso.Picasso
 import io.pokemontcg.model.Card
 import org.w3c.dom.Text
 
-class DecklistAdaptor(private val data: List<DeckEntry>,
-                  private val listener: (DeckEntry) -> Unit) : RecyclerView.Adapter<DecklistAdaptor.ViewHolder>()  {
+class DecklistAdaptor(private val data: List<DeckEntry>) : RecyclerView.Adapter<DecklistAdaptor.ViewHolder>()  {
+
+    private var mListener: DeckListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DecklistAdaptor.ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -32,12 +35,43 @@ class DecklistAdaptor(private val data: List<DeckEntry>,
     inner class ViewHolder(private val v: View) : RecyclerView.ViewHolder(v) {
         private val deckName: TextView = v.findViewById(R.id.deckName)
 
+        @SuppressLint("ClickableViewAccessibility")
         fun bind(item: DeckEntry) {
             deckName.text = item.deckName
             deckName.elevation = 20f
 
-            v.setOnClickListener { listener(item) }
+            v.setOnClickListener {
+                mListener?.onClick(item)
+            }
+
+            v.setOnLongClickListener {
+                mListener?.onLongClick(item)
+                true
+            }
+
+            v.setOnTouchListener {  v, event ->
+                when(event?.action){
+                    MotionEvent.ACTION_DOWN -> {
+                        (v as? ImageView)?.setColorFilter(Color.BLACK,android.graphics.PorterDuff.Mode.OVERLAY)
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        (v as? ImageView)?.clearColorFilter()
+                    }
+                }
+
+                v?.onTouchEvent(event) ?: true
+            }
         }
+    }
+
+    interface DeckListener {
+        fun onClick(deck: DeckEntry)
+        fun onLongClick(deck: DeckEntry)
+    }
+
+    // Custom OnClickListener Setup
+    fun setListener(listener : DeckListener) {
+        mListener = listener
     }
 
 }

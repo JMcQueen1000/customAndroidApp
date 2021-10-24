@@ -7,4 +7,7 @@
     <string name="save_deck">Save Deck</string>
     <string name="enter_deck_name">Enter Deck Name</string>
     <string name="created_decks">Created Decks</string>
+    <string name="delete_deck">Delete Deck</string>
+    <string name="keep_deck">Keep Deck</string>
+    <string name="would_you_like_to_delete_the_selected_deck">Would you like to delete the selected deck?</string>
 </resources>

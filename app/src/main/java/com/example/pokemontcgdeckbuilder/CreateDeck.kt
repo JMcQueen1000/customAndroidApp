@@ -45,14 +45,19 @@ class CreateDeck : AppCompatActivity() {
         val saveButton = findViewById<Button>(R.id.saveDeckButton)
         saveButton.setOnClickListener {
             if (findViewById<EditText>(R.id.editDeckText).text.toString() != "") {
-                val intent = Intent(this, MainActivity::class.java)
+                if (deckCards.size != 0) {
+                    saveToDatabase()
 
-                saveToDatabase()
+                    val intent = Intent(this, MainActivity::class.java)
 
-                startActivity(intent)
+                    startActivity(intent)
+                }
+                else {
+                    Toast.makeText(this, "Error: No cards in deck", Toast.LENGTH_SHORT).show()
+                }
             }
             else {
-                Toast.makeText(this, "Please enter a deck name to save", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error: Please enter a deck name", Toast.LENGTH_SHORT).show()
             }
 
         }
@@ -117,9 +122,6 @@ class CreateDeck : AppCompatActivity() {
 
                     // Gets the text data from the item.
                     val dragData = item.text
-
-                    // Displays a message containing the dragged data.
-                    Toast.makeText(this, "Dragged data is $dragData", Toast.LENGTH_SHORT).show()
 
                     // Turns off any color tints
                     (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners,theme)
@@ -215,9 +217,6 @@ class CreateDeck : AppCompatActivity() {
 
                     // Gets the text data from the item.
                     val dragData = item.text
-
-                    // Displays a message containing the dragged data.
-                    Toast.makeText(this, "Dragged data is $dragData", Toast.LENGTH_SHORT).show()
 
                     // Turns off any color tints
                     (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners,theme)
@@ -328,7 +327,7 @@ class CreateDeck : AppCompatActivity() {
                 if (it.card.id == cardToRemove.card.id) {
                     it.quantity--
                     if (it.quantity <= 0) {
-                        removeCard = true;
+                        removeCard = true
                     }
                 }
                  true
@@ -352,49 +351,62 @@ class CreateDeck : AppCompatActivity() {
     }
 
     private fun addCardToDeck(item: String) {
-        val newCard = currentCards.find {
-            it.id == item
+        var cardsInDeck = 0
+         deckCards.filter {
+             cardsInDeck += it.quantity
+             true
         }
-
-        if (newCard != null) {
-            //check if same pokemon name is added more than 4 times
-            var nameCount = 0
-            deckCards.filter {
-                if (it.card.name == newCard.name) {
-                    nameCount = nameCount + it.quantity
-                }
-                true
+        if (cardsInDeck < 60) {
+            val newCard = currentCards.find {
+                it.id == item
             }
 
-            var copyCard = deckCards.find {
-                it.card.id == newCard.id
-            }
-            if (copyCard != null) {
+            if (newCard != null) {
+                //check if same pokemon name is added more than 4 times
+                var nameCount = 0
                 deckCards.filter {
-                    if (nameCount < 4) {
-                        if (it.card.id == copyCard.card.id) {
-                            if (it.quantity < 4) {
-                                it.quantity = it.quantity + 1
-                                deckAdaptor.notifyItemChanged(copyCard.position, null)
-                            }
-                            else {
-                                Toast.makeText(this, "Cannot add more than 4 cards with the same name", Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                    if (it.card.name == newCard.name) {
+                        nameCount += it.quantity
                     }
                     true
                 }
-            }
-            else {
-                if (nameCount < 4) {
-                    val brandNewCard = DeckCard(newCard, 1, deckCards.size)
-                    deckCards.add(brandNewCard)
-                    deckAdaptor.notifyItemChanged(deckAdaptor.itemCount)
+
+                val copyCard = deckCards.find {
+                    it.card.id == newCard.id
+                }
+                if (copyCard != null) {
+                    deckCards.filter {
+                        if (nameCount < 4) {
+                            if (it.card.id == copyCard.card.id) {
+                                if (it.quantity < 4) {
+                                    it.quantity = it.quantity + 1
+                                    deckAdaptor.notifyItemChanged(copyCard.position, null)
+                                }
+                                else {
+                                    Toast.makeText(this, "Cannot add more than 4 cards with the same name", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                        else {
+                            Toast.makeText(this, "Cannot add more than 4 cards with the same name", Toast.LENGTH_SHORT).show()
+                        }
+                        true
+                    }
                 }
                 else {
-                    Toast.makeText(this, "Cannot add more than 4 cards with the same name", Toast.LENGTH_SHORT).show()
+                    if (nameCount < 4) {
+                        val brandNewCard = DeckCard(newCard, 1, deckCards.size)
+                        deckCards.add(brandNewCard)
+                        deckAdaptor.notifyItemChanged(deckAdaptor.itemCount)
+                    }
+                    else {
+                        Toast.makeText(this, "Cannot add more than 4 cards with the same name", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
+        }
+        else {
+            Toast.makeText(this, "Cannot add more than 60 cards to a deck", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -431,7 +443,7 @@ class CreateDeck : AppCompatActivity() {
 
         val searchItem = menu.findItem(R.id.app_bar_search)
         val searchView = searchItem.actionView as SearchView
-        searchView.setQueryHint("Search Pokemon Cards")
+        searchView.queryHint = "Search Pokemon Cards"
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
 
