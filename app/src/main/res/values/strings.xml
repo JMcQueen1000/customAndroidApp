@@ -6,4 +6,5 @@
     <string name="save">Save</string>
     <string name="save_deck">Save Deck</string>
     <string name="enter_deck_name">Enter Deck Name</string>
+    <string name="created_decks">Created Decks</string>
 </resources>

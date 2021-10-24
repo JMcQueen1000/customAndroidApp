@@ -2,9 +2,7 @@ package com.example.pokemontcgdeckbuilder
 
 import android.annotation.SuppressLint
 import android.content.ClipData
-import android.content.ClipDescription
 import android.content.Intent
-import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.*
@@ -12,12 +10,11 @@ import android.widget.*
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.squareup.picasso.Picasso
 import io.pokemontcg.Pokemon
 import io.pokemontcg.model.Card
-import io.pokemontcg.model.CardSet
-import okhttp3.internal.notify
 import java.util.concurrent.Executors
 
 class CreateDeck : AppCompatActivity() {
@@ -27,26 +24,43 @@ class CreateDeck : AppCompatActivity() {
     private lateinit var deckAdaptor: DeckAdaptor
     private lateinit var currentCards: List<Card>
     private lateinit var deckCards: MutableList<DeckCard>
+    private lateinit var loadedDeck: DeckEntry
+    private var load: Boolean = false
 
     @SuppressLint("UseCompatLoadingForDrawables")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.create_deck_layout)
 
-        deckCards = mutableListOf()
+
+        //check intent data to see if a deck should be loaded
+        val deckID = intent.getIntExtra("id", 0)
+        if (deckID != 0) {
+            loadDeckFromDatabase(deckID)
+        }
+
+        setUpDeckRecyclerView(load)
+        setUpCardRecyclerView()
+
+        val saveButton = findViewById<Button>(R.id.saveDeckButton)
+        saveButton.setOnClickListener {
+            if (findViewById<EditText>(R.id.editDeckText).text.toString() != "") {
+                val intent = Intent(this, MainActivity::class.java)
+
+                saveToDatabase()
+
+                startActivity(intent)
+            }
+            else {
+                Toast.makeText(this, "Please enter a deck name to save", Toast.LENGTH_SHORT).show()
+            }
+
+        }
+    }
+
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun setUpCardRecyclerView() {
         currentCards = emptyList()
-
-        //set up deckList recycler view
-        val deckList = findViewById<RecyclerView>(R.id.deckRecyclerView)
-        deckList.elevation = 20f
-
-        gridLayoutManager = GridLayoutManager(this, 5)
-        deckList.layoutManager = gridLayoutManager
-
-        currentCards = emptyList()
-        deckAdaptor = DeckAdaptor(deckCards) {showCardDetail(it)}
-        deckList.adapter = deckAdaptor
-
 
         //set up cardList recycler view
         val cardList = findViewById<RecyclerView>(R.id.cardRecyclerView)
@@ -57,93 +71,6 @@ class CreateDeck : AppCompatActivity() {
 
         cardAdaptor = CardDeckAdaptor(currentCards)
         cardList.adapter = cardAdaptor
-
-        val saveButton = findViewById<Button>(R.id.saveDeckButton)
-
-        saveButton.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-
-            saveToDatabase()
-
-            startActivity(intent)
-        }
-
-
-        deckList.setOnDragListener {v, event ->
-            when (event.action) {
-                DragEvent.ACTION_DRAG_STARTED -> {
-                    // Determines if this View can accept the dragged data
-                    if (event.clipDescription.label.toString() == "inList") {
-                        // As an example of what your application might do,
-                        // applies a new background to the View to indicate that it can accept
-                        // data.
-                        (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_enable,theme)
-
-                        // Invalidate the view to force a redraw in the new tint
-                        v.invalidate()
-
-                        // returns true to indicate that the View can accept the dragged data.
-                        true
-                    } else {
-                        // Returns false. During the current drag and drop operation, this View will
-                        // not receive events again until ACTION_DRAG_ENDED is sent.
-                        false
-                    }
-                }
-                DragEvent.ACTION_DRAG_ENTERED -> {
-                    // Applies new background to the View. Return true; the return value is ignored.
-                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_hover,theme)
-
-                    // Invalidate the view to force a redraw in the new tint
-                    v.invalidate()
-                    true
-                }
-
-                DragEvent.ACTION_DRAG_EXITED -> {
-                    // Applies a green tint to the View. Return true; the return value is ignored.
-                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_enable,theme)
-
-                    // Invalidate the view to force a redraw in the new tint
-                    v.invalidate()
-                    true
-                }
-
-                DragEvent.ACTION_DROP -> {
-                    // Gets the item containing the dragged data
-                    val item: ClipData.Item = event.clipData.getItemAt(1)
-
-                    // Gets the text data from the item.
-                    val dragData = item.text
-
-                    // Displays a message containing the dragged data.
-                    Toast.makeText(this, "Dragged data is $dragData", Toast.LENGTH_SHORT).show()
-
-                    // Turns off any color tints
-                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners,theme)
-
-                    // Invalidates the view to force a redraw
-                    v.invalidate()
-
-                    addCardToDeck(dragData.toString())
-
-                    // Returns true. DragEvent.getResult() will return true.
-                    true
-                }
-
-                DragEvent.ACTION_DRAG_ENDED -> {
-                    //returns background color to normal
-                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners,theme)
-
-                    // Invalidate the view to force a redraw in the new tint
-                    v.invalidate()
-                    true
-                }
-
-                else -> true
-            }
-
-        }
-
 
         cardList.setOnDragListener {v, event ->
             when (event.action) {
@@ -220,8 +147,151 @@ class CreateDeck : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun setUpDeckRecyclerView(load: Boolean) {
+        //load card if load is initiated, else start with empty deck
+        if (load) {
+            deckCards = loadedDeck.deck as MutableList<DeckCard>
+            //set deck name
+            findViewById<EditText>(R.id.editDeckText).setText(loadedDeck.deckName)
+        }
+        else {
+            deckCards = mutableListOf()
+        }
+
+        //set up deckList recycler view
+        val deckList = findViewById<RecyclerView>(R.id.deckRecyclerView)
+        deckList.elevation = 20f
+
+        gridLayoutManager = GridLayoutManager(this, 5)
+        deckList.layoutManager = gridLayoutManager
+
+        currentCards = emptyList()
+        deckAdaptor = DeckAdaptor(deckCards) {showCardDetail(it)}
+        deckList.adapter = deckAdaptor
+
+        deckList.setOnDragListener {v, event ->
+            when (event.action) {
+                DragEvent.ACTION_DRAG_STARTED -> {
+                    // Determines if this View can accept the dragged data
+                    if (event.clipDescription.label.toString() == "inList") {
+                        // As an example of what your application might do,
+                        // applies a new background to the View to indicate that it can accept
+                        // data.
+                        (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_enable,theme)
+
+                        // Invalidate the view to force a redraw in the new tint
+                        v.invalidate()
+
+                        // returns true to indicate that the View can accept the dragged data.
+                        true
+                    } else {
+                        // Returns false. During the current drag and drop operation, this View will
+                        // not receive events again until ACTION_DRAG_ENDED is sent.
+                        false
+                    }
+                }
+                DragEvent.ACTION_DRAG_ENTERED -> {
+                    // Applies new background to the View. Return true; the return value is ignored.
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_hover,theme)
+
+                    // Invalidate the view to force a redraw in the new tint
+                    v.invalidate()
+                    true
+                }
+
+                DragEvent.ACTION_DRAG_EXITED -> {
+                    // Applies a green tint to the View. Return true; the return value is ignored.
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners_enable,theme)
+
+                    // Invalidate the view to force a redraw in the new tint
+                    v.invalidate()
+                    true
+                }
+
+                DragEvent.ACTION_DROP -> {
+                    // Gets the item containing the dragged data
+                    val item: ClipData.Item = event.clipData.getItemAt(1)
+
+                    // Gets the text data from the item.
+                    val dragData = item.text
+
+                    // Displays a message containing the dragged data.
+                    Toast.makeText(this, "Dragged data is $dragData", Toast.LENGTH_SHORT).show()
+
+                    // Turns off any color tints
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners,theme)
+
+                    // Invalidates the view to force a redraw
+                    v.invalidate()
+
+                    addCardToDeck(dragData.toString())
+
+                    // Returns true. DragEvent.getResult() will return true.
+                    true
+                }
+
+                DragEvent.ACTION_DRAG_ENDED -> {
+                    //returns background color to normal
+                    (v as? RecyclerView)?.background = resources.getDrawable(R.drawable.background_corners,theme)
+
+                    // Invalidate the view to force a redraw in the new tint
+                    v.invalidate()
+                    true
+                }
+
+                else -> true
+            }
+
+        }
+    }
+
+    private fun loadDeckFromDatabase(id: Int) {
+        val executor = Executors.newSingleThreadExecutor()
+        executor.execute {
+            val db = Room.databaseBuilder(
+                applicationContext,
+                AppDatabase::class.java, "database-name"
+            ).build()
+
+            val deckDao = db.deckDao()
+
+            loadedDeck = deckDao.findByID(id)
+
+            load = true
+            setUpDeckRecyclerView(load)
+        }
+    }
+
     private fun saveToDatabase() {
-        TODO("Not yet implemented")
+        //DATABASE STUFF
+        val executor = Executors.newSingleThreadExecutor()
+        executor.execute {
+            val db = Room.databaseBuilder(
+                applicationContext,
+                AppDatabase::class.java, "database-name"
+            ).build()
+
+            val deckDao = db.deckDao()
+
+            val deckName = findViewById<EditText>(R.id.editDeckText)
+            if (load) {
+                deckDao.updateDeckName(loadedDeck.uid, deckName.text.toString())
+                deckDao.updateDeckCards(loadedDeck.uid, deckCards)
+                runOnUiThread {
+                    Toast.makeText(this, "Deck Saved", Toast.LENGTH_SHORT).show()
+                }
+            }
+            else {
+                if (deckCards.isNotEmpty()) {
+                    val newDeck = DeckEntry(0, deckName.text.toString(), deckCards)
+                    deckDao.insertAll(newDeck)
+                    runOnUiThread {
+                        Toast.makeText(this, "Deck Saved", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
     }
 
     private fun showCardDetail(item: DeckCard) {

@@ -28,7 +28,6 @@ class ViewCards : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.view_cards_layout)
-
         val executor = Executors.newSingleThreadExecutor()
         executor.execute {
             /**
