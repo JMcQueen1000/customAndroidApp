@@ -1,6 +1,5 @@
 package com.example.pokemontcgdeckbuilder
 
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -21,7 +20,7 @@ import kotlinx.coroutines.launch
 import java.lang.Exception
 
 
-class ViewCards : AppCompatActivity() {
+class ViewSearchedCards : AppCompatActivity() {
     private lateinit var gridLayoutManager: GridLayoutManager
     private lateinit var cardAdapter: CardAdaptor
 
@@ -30,13 +29,10 @@ class ViewCards : AppCompatActivity() {
         setContentView(R.layout.view_cards_layout)
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
 
-        val setName = intent.getStringExtra("Set Name")
-        val setCode = intent.getStringExtra("Set Code")
+        val query = intent.getStringExtra("Query")
 
-        if (setName != null) {
-            if (setCode != null) {
-                loadCardSet(setCode, setName)
-            }
+        if (query != null) {
+            loadSearchedCard(query)
         }
     }
 
@@ -54,17 +50,15 @@ class ViewCards : AppCompatActivity() {
             }
 
             override fun onQueryTextSubmit(query: String): Boolean {
-                val intent = Intent(applicationContext, ViewSearchedCards::class.java)
-                intent.putExtra("Query", query)
-                startActivity(intent)
+                loadSearchedCard(query)
                 return false
             }
         })
         return true
     }
 
-    private fun loadCardSet(code: String, name: String) {
-        Toast.makeText(applicationContext, "Loading Cards", Toast.LENGTH_SHORT).show()
+    private fun loadSearchedCard(searchText: String) {
+        Toast.makeText(applicationContext, "Searching Cards", Toast.LENGTH_SHORT).show()
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val pokemon = Pokemon()
@@ -72,18 +66,16 @@ class ViewCards : AppCompatActivity() {
                 //search for all cards with the selected set name
                 val cards = pokemon.card()
                     .where {
-                        setCode = code
-                        pageSize = 350
+                        name = searchText
+                        pageSize = 10000
                     }
                     .all()
-
-                val cardsSorted = cards.sortedWith(compareBy { it.number.toIntOrNull() })
 
                 runOnUiThread {
                     // Stuff that updates the UI
 
                     val titleText = findViewById<TextView>(R.id.titleText)
-                    val text = "Cards from $name"
+                    val text = "Cards with '$searchText' in name"
                     titleText.text = text
 
                     //set up recycler view with adapter
@@ -92,7 +84,7 @@ class ViewCards : AppCompatActivity() {
                     gridLayoutManager = GridLayoutManager(applicationContext, 2)
                     setList.layoutManager = gridLayoutManager
 
-                    cardAdapter = CardAdaptor(cardsSorted) { showCardDetail(it) }
+                    cardAdapter = CardAdaptor(cards) { showCardDetail(it) }
                     setList.adapter = cardAdapter
                 }
             }

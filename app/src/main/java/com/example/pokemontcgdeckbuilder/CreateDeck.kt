@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.recyclerview.widget.GridLayoutManager
@@ -15,7 +16,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.squareup.picasso.Picasso
 import io.pokemontcg.Pokemon
 import io.pokemontcg.model.Card
-import java.util.concurrent.Executors
+import kotlinx.coroutines.*
+import java.lang.Exception
 
 class CreateDeck : AppCompatActivity() {
     private lateinit var linearLayoutManager: LinearLayoutManager
@@ -31,6 +33,7 @@ class CreateDeck : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.create_deck_layout)
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
 
 
         //check intent data to see if a deck should be loaded
@@ -59,7 +62,6 @@ class CreateDeck : AppCompatActivity() {
             else {
                 Toast.makeText(this, "Error: Please enter a deck name", Toast.LENGTH_SHORT).show()
             }
-
         }
     }
 
@@ -246,48 +248,59 @@ class CreateDeck : AppCompatActivity() {
     }
 
     private fun loadDeckFromDatabase(id: Int) {
-        val executor = Executors.newSingleThreadExecutor()
-        executor.execute {
-            val db = Room.databaseBuilder(
-                applicationContext,
-                AppDatabase::class.java, "database-name"
-            ).build()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val db = Room.databaseBuilder(
+                    applicationContext,
+                    AppDatabase::class.java, "database-name"
+                ).build()
 
-            val deckDao = db.deckDao()
+                val deckDao = db.deckDao()
 
-            loadedDeck = deckDao.findByID(id)
+                loadedDeck = deckDao.findByID(id)
 
-            load = true
-            setUpDeckRecyclerView(load)
+                load = true
+                setUpDeckRecyclerView(load)
+            }
+            catch (e : Exception) {
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "Error: Loading from database failed", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
     private fun saveToDatabase() {
         //DATABASE STUFF
-        val executor = Executors.newSingleThreadExecutor()
-        executor.execute {
-            val db = Room.databaseBuilder(
-                applicationContext,
-                AppDatabase::class.java, "database-name"
-            ).build()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val db = Room.databaseBuilder(
+                    applicationContext,
+                    AppDatabase::class.java, "database-name"
+                ).build()
 
-            val deckDao = db.deckDao()
+                val deckDao = db.deckDao()
 
-            val deckName = findViewById<EditText>(R.id.editDeckText)
-            if (load) {
-                deckDao.updateDeckName(loadedDeck.uid, deckName.text.toString())
-                deckDao.updateDeckCards(loadedDeck.uid, deckCards)
-                runOnUiThread {
-                    Toast.makeText(this, "Deck Saved", Toast.LENGTH_SHORT).show()
+                val deckName = findViewById<EditText>(R.id.editDeckText)
+                if (load) {
+                    deckDao.updateDeckName(loadedDeck.uid, deckName.text.toString())
+                    deckDao.updateDeckCards(loadedDeck.uid, deckCards)
+                    runOnUiThread {
+                        Toast.makeText(applicationContext, "Deck Saved", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    if (deckCards.isNotEmpty()) {
+                        val newDeck = DeckEntry(0, deckName.text.toString(), deckCards)
+                        deckDao.insertAll(newDeck)
+                        runOnUiThread {
+                            Toast.makeText(applicationContext, "Deck Saved", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             }
-            else {
-                if (deckCards.isNotEmpty()) {
-                    val newDeck = DeckEntry(0, deckName.text.toString(), deckCards)
-                    deckDao.insertAll(newDeck)
-                    runOnUiThread {
-                        Toast.makeText(this, "Deck Saved", Toast.LENGTH_SHORT).show()
-                    }
+            catch(e : Exception) {
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "Error: Saving to database failed", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -411,25 +424,30 @@ class CreateDeck : AppCompatActivity() {
     }
 
     private fun loadSearchedCard(searchText: String) {
-        val executor = Executors.newSingleThreadExecutor()
-        executor.execute {
-            val pokemon = Pokemon()
+        Toast.makeText(applicationContext, "Searching Cards", Toast.LENGTH_SHORT).show()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val pokemon = Pokemon()
 
-            //search for all cards with the selected set name
-            currentCards = pokemon.card()
-                .where {
-                    name = searchText
-                    pageSize = 10000
+                //search for all cards with the selected set name
+                currentCards = pokemon.card()
+                    .where {
+                        name = searchText
+                        pageSize = 10000
+                    }
+                    .all()
+            } catch (e: Exception) {
+                Log.i("API ERROR", "CARDS WOULD NOT LOAD")
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "Loading Error: Could not connect to API", Toast.LENGTH_SHORT).show()
                 }
-                .all()
-
+            }
             runOnUiThread {
                 // Stuff that updates the UI
-
                 //set up recycler view with adapter
                 val cardList = findViewById<RecyclerView>(R.id.cardRecyclerView)
 
-                linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+                linearLayoutManager = LinearLayoutManager(applicationContext, LinearLayoutManager.HORIZONTAL, false)
                 cardList.layoutManager = linearLayoutManager
 
                 cardAdaptor = CardDeckAdaptor(currentCards)

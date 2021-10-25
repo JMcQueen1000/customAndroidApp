@@ -4,16 +4,16 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import org.w3c.dom.Text
-import java.lang.Thread.sleep
-import java.util.concurrent.Executors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.lang.Exception
 
 class ViewDecks : AppCompatActivity() {
     private lateinit var linearLayoutManager: LinearLayoutManager
@@ -24,36 +24,47 @@ class ViewDecks : AppCompatActivity() {
         setContentView(R.layout.view_decks_layout)
 
         //set decks from database
-        val executor = Executors.newSingleThreadExecutor()
-        executor.execute {
-            val db = Room.databaseBuilder(
-                applicationContext,
-                AppDatabase::class.java, "database-name"
-            ).build()
+        getDecks()
 
-            val deckDao = db.deckDao()
-            decks = deckDao.getAll()
+    }
 
-            runOnUiThread {
-                //set up deckList recycler view
-                val deckList = findViewById<RecyclerView>(R.id.viewDeckRecyclerView)
-                deckList.elevation = 20f
+    private fun getDecks() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val db = Room.databaseBuilder(
+                    applicationContext,
+                    AppDatabase::class.java, "database-name"
+                ).build()
 
-                linearLayoutManager = LinearLayoutManager(this)
-                deckList.layoutManager = linearLayoutManager
+                val deckDao = db.deckDao()
+                decks = deckDao.getAll()
 
-                decklistAdaptor = DecklistAdaptor(decks).also {
-                    it.setListener(object: DecklistAdaptor.DeckListener {
-                        override fun onClick(deck: DeckEntry) {
-                            editDeck(deck)
-                        }
+                runOnUiThread {
+                    //set up deckList recycler view
+                    val deckList = findViewById<RecyclerView>(R.id.viewDeckRecyclerView)
+                    deckList.elevation = 20f
 
-                        override fun onLongClick(deck: DeckEntry) {
-                            deleteDeckPopup(deck)
-                        }
-                    })
+                    linearLayoutManager = LinearLayoutManager(applicationContext)
+                    deckList.layoutManager = linearLayoutManager
+
+                    decklistAdaptor = DecklistAdaptor(decks).also {
+                        it.setListener(object : DecklistAdaptor.DeckListener {
+                            override fun onClick(deck: DeckEntry) {
+                                editDeck(deck)
+                            }
+
+                            override fun onLongClick(deck: DeckEntry) {
+                                deleteDeckPopup(deck)
+                            }
+                        })
+                    }
+                    deckList.adapter = decklistAdaptor
                 }
-                deckList.adapter = decklistAdaptor
+            }
+            catch (e : Exception) {
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "Error: Could not connect to database", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -96,15 +107,21 @@ class ViewDecks : AppCompatActivity() {
     @SuppressLint("NotifyDataSetChanged")
     private fun deleteDeckFromDatabase(deck: DeckEntry) {
         //delete deck from database
-        val executor = Executors.newSingleThreadExecutor()
-        executor.execute {
-            val db = Room.databaseBuilder(
-                applicationContext,
-                AppDatabase::class.java, "database-name"
-            ).build()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val db = Room.databaseBuilder(
+                    applicationContext,
+                    AppDatabase::class.java, "database-name"
+                ).build()
 
-            val deckDao = db.deckDao()
-            deckDao.delete(deck)
+                val deckDao = db.deckDao()
+                deckDao.delete(deck)
+            }
+            catch (e : Exception) {
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "Error: Could not connect to database", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 }

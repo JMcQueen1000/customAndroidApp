@@ -14,8 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import io.pokemontcg.model.CardSet
 
-class SetAdaptor(private val data: List<CardSet>,
-                  private val listener: (CardSet) -> Unit) : RecyclerView.Adapter<SetAdaptor.ViewHolder>()  {
+class SetAdaptor(private val data: List<CardSet>) : RecyclerView.Adapter<SetAdaptor.ViewHolder>()  {
+
+    private var mListener: SetListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SetAdaptor.ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -40,25 +41,29 @@ class SetAdaptor(private val data: List<CardSet>,
         fun bind(item: CardSet) {
             //bind item to view
             setName.text = item.name
-            Picasso.get().load(item.logoUrl).into(setLogo);
+            Picasso.get().load(item.logoUrl).into(setLogo)
             setLogo.elevation = 20f
-            /*setLogo.setOnTouchListener { v, event ->
-                when (event?.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        (v as? ImageView)?.setColorFilter(Color.BLACK,android.graphics.PorterDuff.Mode.OVERLAY)
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        (v as? ImageView)?.clearColorFilter()
-                    }
-                }
-
-                v?.onTouchEvent(event) ?: true
-            }*/
 
             //set listener
-            v.setOnClickListener { listener(item) }
+            v.setOnClickListener {
+                mListener?.onClick(item)
+            }
 
+            v.setOnLongClickListener {
+                mListener?.onLongClick(item)
+                true
+            }
         }
+    }
+
+    interface SetListener {
+        fun onClick(set: CardSet)
+        fun onLongClick(set: CardSet)
+    }
+
+    // Custom OnClickListener Setup
+    fun setListener(listener : SetListener) {
+        mListener = listener
     }
 
 }

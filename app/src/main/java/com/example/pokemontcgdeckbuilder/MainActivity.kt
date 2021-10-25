@@ -1,15 +1,12 @@
 package com.example.pokemontcgdeckbuilder
 
 import android.annotation.SuppressLint
-import android.content.ClipData
 import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MotionEvent
-import android.view.View
 import android.widget.ImageView
-import androidx.recyclerview.widget.RecyclerView
 
 
 class MainActivity : AppCompatActivity() {
@@ -35,7 +32,7 @@ class MainActivity : AppCompatActivity() {
 
 
         viewCardsButton.setOnClickListener {
-            val intent = Intent(this, ViewCards::class.java)
+            val intent = Intent(this, ViewSets::class.java)
             startActivity(intent)
         }
 

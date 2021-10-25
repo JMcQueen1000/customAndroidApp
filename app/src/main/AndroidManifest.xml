@@ -20,7 +20,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ViewSets" />
         <activity android:name=".ViewCards" />
+        <activity android:name=".ViewSearchedCards" />
         <activity android:name=".ViewDecks" />
         <activity android:name=".CreateDeck" />
     </application>
